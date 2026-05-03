@@ -9,15 +9,16 @@ import java.util.Map;
 /**
  * AI Component: Rule-Based Smart Traffic Controller
  * 
- * Uses simple rules to make intelligent decisions about traffic light timing.
- * This simulates how AI can optimize traffic flow at intersections.
+ * Uses heuristic rules to make intelligent decisions about traffic light timing.
+ * This simulates how AI can optimize traffic flow at intersections by balancing
+ * throughput (vehicles passed) against latency (wait time/starvation).
  * 
- * Rules:
- * 1. If one lane has more vehicles, give it longer green time.
- * 2. If an emergency vehicle appears, give it highest priority.
- * 3. If a lane waits too long, increase its priority.
- * 4. If deadlock risk appears, prevent unsafe locking.
- * 5. If all lanes are balanced, rotate signals normally.
+ * Rules (Prioritized):
+ * 1. Emergency Priority: If an emergency vehicle appears, force green for its lane immediately.
+ * 2. Starvation Prevention: If a vehicle waits too long (>15s), boost its lane's green time.
+ * 3. Load Balancing: Give proportionally more green time to lanes with more traffic.
+ * 4. Deadlock Risk Mitigation: Detect high-risk circular wait conditions.
+ * 5. Default Cycling: Rotate signals normally if all lanes are balanced.
  */
 public class SmartTrafficController {
 

@@ -78,6 +78,53 @@ public class IntersectionPanel extends JPanel {
 
         drawDirectionLabels(g2);
         drawTitle(g2);
+        drawLegend(g2);
+    }
+
+    /**
+     * Draws a visual legend to explain vehicle types.
+     */
+    private void drawLegend(Graphics2D g2) {
+        int lx = 15;
+        int ly = 15;
+        int lw = 120;
+        int lh = 75;
+
+        // Legend Background
+        g2.setColor(new Color(30, 30, 40, 200));
+        g2.fillRoundRect(lx, ly, lw, lh, 8, 8);
+        g2.setColor(new Color(70, 70, 80));
+        g2.drawRoundRect(lx, ly, lw, lh, 8, 8);
+
+        g2.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        g2.setColor(new Color(200, 200, 220));
+        g2.drawString("VEHICLE LEGEND", lx + 10, ly + 15);
+
+        g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+
+        // Normal Vehicle
+        g2.setColor(VehicleType.NORMAL.getColor());
+        g2.fillRoundRect(lx + 10, ly + 25, 12, 8, 2, 2);
+        g2.setColor(new Color(200, 200, 220));
+        g2.drawString("Normal", lx + 30, ly + 33);
+
+        // Emergency Vehicle
+        g2.setColor(VehicleType.AMBULANCE.getColor());
+        g2.fillRoundRect(lx + 10, ly + 40, 12, 8, 2, 2);
+        g2.setColor(Color.BLUE);
+        g2.fillOval(lx + 14, ly + 42, 4, 4); // Siren
+        g2.setColor(new Color(200, 200, 220));
+        g2.drawString("Emergency", lx + 30, ly + 48);
+
+        // Blocked/Deadlock
+        g2.setColor(BLOCKED_COLOR);
+        g2.fillRoundRect(lx + 10, ly + 55, 12, 8, 2, 2);
+        g2.setColor(Color.RED);
+        g2.setFont(new Font("Segoe UI", Font.BOLD, 8));
+        g2.drawString("X", lx + 14, ly + 62);
+        g2.setColor(new Color(200, 200, 220));
+        g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        g2.drawString("Blocked", lx + 30, ly + 63);
     }
 
     /**
@@ -349,9 +396,13 @@ public class IntersectionPanel extends JPanel {
                 vh = Vehicle.HEIGHT;
             }
 
-            // Vehicle color (gray if deadlocked/blocked)
+            // Vehicle color (special colors for OS concepts)
             Color vehicleColor;
-            if (v.isDeadlocked() || v.getStatus() == VehicleStatus.BLOCKED) {
+            if (v.isDeadlocked()) {
+                vehicleColor = Color.RED;
+            } else if (v.isInConvoy()) {
+                vehicleColor = new Color(155, 89, 182); // Purple for OS Demo
+            } else if (v.getStatus() == VehicleStatus.BLOCKED || v.getStatus() == VehicleStatus.WAITING) {
                 vehicleColor = BLOCKED_COLOR;
             } else {
                 vehicleColor = v.getType().getColor();

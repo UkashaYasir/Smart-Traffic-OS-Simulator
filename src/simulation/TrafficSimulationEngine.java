@@ -242,12 +242,21 @@ public class TrafficSimulationEngine {
 
     /**
      * Starts a thread for a single vehicle.
-     * This is where the full vehicle lifecycle runs using OS synchronization.
+     * This is the core of the project where vehicles move through their lifecycle.
+     * Each vehicle follows a "Critical Section" pattern:
+     * 1. PRE-SYNC (Wait for StartLatch)
+     * 2. ENTRY SECTION (Approach & request Semaphore)
+     * 3. CRITICAL SECTION (Crossing the intersection)
+     * 4. EXIT SECTION (Release Semaphore & leave)
      */
     private void startVehicleThread(Vehicle vehicle) {
         Thread thread = new Thread(() -> {
             boolean semaphoreHeld = false;
             try {
+                // PHASE 0: WAIT FOR ENGINE START (CountDownLatch)
+                // Prevents vehicles from moving until simulation is fully initialized
+                startLatch.awaitStart();
+
                 vehicle.setStatus(VehicleStatus.APPROACHING);
 
                 // =============================================
@@ -298,6 +307,28 @@ public class TrafficSimulationEngine {
                     if (isVehicleAhead(vehicle, MIN_SPACING)) {
                         Thread.sleep(50);
                         continue;
+                    }
+
+                    // --- NEW: DEADLOCK EFFECTS THE SIMULATION ---
+                    // If a deadlock is active, NO vehicles can enter the intersection
+                    if (deadlockManager.isDeadlockActive()) {
+                        Thread.sleep(100);
+                        continue;
+                    }
+
+                    // PHASE 1.5: CONVOY SYNC (CyclicBarrier)
+                    // If vehicle is part of a convoy, it must wait for all members
+                    // at the stop line before any are allowed to request the semaphore.
+                    if (vehicle.isInConvoy()) {
+                        vehicle.setStatus(VehicleStatus.WAITING);
+                        try {
+                            convoyBarrier.awaitConvoy(vehicle.toString());
+                        } catch (Exception e) {
+                            // Barrier reset or broken, proceed normally
+                        }
+                        vehicle.setStatus(VehicleStatus.APPROACHING);
+                        // Brief pause to show they've been released
+                        Thread.sleep(200);
                     }
 
                     // Light is green! Try to get semaphore (with timeout)
@@ -554,32 +585,54 @@ public class TrafficSimulationEngine {
      * Demonstrates the Exchanger by having two vehicles swap data.
      */
     public void demonstrateExchanger() {
+        if (!running) {
+            logger.log("⚠ Start the simulation before running the Exchanger demo.");
+            return;
+        }
         int nsCount = lanes.get(Direction.NORTH).getVehicleCount();
         int ewCount = lanes.get(Direction.EAST).getVehicleCount();
-        vehicleExchanger.demonstrateExchange(
+        
+        // The exchanger demo creates threads. We should track them.
+        Thread[] threads = vehicleExchanger.createDemonstrationThreads(
             "NorthVehicle", "North congestion: " + nsCount + " vehicles",
             "EastVehicle", "East congestion: " + ewCount + " vehicles"
         );
+        
+        for (Thread t : threads) {
+            vehicleThreads.add(t);
+            t.start();
+        }
     }
 
     /**
      * Demonstrates the ConvoyBarrier.
      */
     public void demonstrateConvoy() {
-        convoyBarrier.reset(3);
-        logger.log("=== Convoy demo: 3 vehicles will sync before crossing ===");
+        if (!running) {
+            logger.log("⚠ Start the simulation before running the Convoy demo.");
+            return;
+        }
+        
+        int convoySize = 3;
+        convoyBarrier.reset(convoySize);
+        logger.log("=== Visual Convoy Demo: " + convoySize + " Purple vehicles will sync at North lane ===");
 
-        for (int i = 0; i < 3; i++) {
-            final int num = i + 1;
+        for (int i = 0; i < convoySize; i++) {
+            final int offset = i;
             new Thread(() -> {
                 try {
-                    Thread.sleep(num * 500); // Stagger arrivals
-                    convoyBarrier.awaitConvoy("ConvoyVehicle-" + num);
-                    logger.log("ConvoyVehicle-" + num + " proceeding through intersection!");
-                } catch (Exception e) {
-                    logger.log("ConvoyVehicle-" + num + " barrier error: " + e.getMessage());
+                    Thread.sleep(offset * 800); // Stagger their approach
+                    
+                    // Create a REAL vehicle in the North lane
+                    Vehicle v = new Vehicle(VehicleType.NORMAL, Direction.NORTH, 365, -50);
+                    v.setInConvoy(true); // Mark for special handling
+                    
+                    allVehicles.add(v);
+                    startVehicleThread(v);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
-            }, "Convoy-" + num).start();
+            }).start();
         }
     }
 

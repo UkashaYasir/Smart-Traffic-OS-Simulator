@@ -53,8 +53,12 @@ public class ConvoyBarrier {
 
     /**
      * Resets the barrier for a new convoy.
+     * Notifies any currently waiting threads that the barrier is being reset.
      */
     public void reset(int newParties) {
+        if (this.barrier != null) {
+            this.barrier.reset(); // Breaks the barrier and notifies waiting threads
+        }
         this.partyCount = newParties;
         this.barrier = new CyclicBarrier(newParties, () -> {
             logger.log("═══ Convoy barrier tripped! All " + newParties

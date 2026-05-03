@@ -69,12 +69,12 @@ public class DeadlockManager {
         logger.log("⚠ DEADLOCK DEMONSTRATION STARTING ⚠");
         logger.log("═══════════════════════════════════════");
 
-        // Create two vehicles for the deadlock demo
-        deadlockVehicleA = new Vehicle(VehicleType.NORMAL, Direction.NORTH, 350, 100);
+        // Create two vehicles for the deadlock demo right in the middle of the intersection
+        deadlockVehicleA = new Vehicle(VehicleType.NORMAL, Direction.NORTH, 365, 330);
         deadlockVehicleA.setStatus(VehicleStatus.BLOCKED);
         deadlockVehicleA.setDeadlocked(true);
 
-        deadlockVehicleB = new Vehicle(VehicleType.NORMAL, Direction.EAST, 550, 330);
+        deadlockVehicleB = new Vehicle(VehicleType.NORMAL, Direction.EAST, 330, 305);
         deadlockVehicleB.setStatus(VehicleStatus.BLOCKED);
         deadlockVehicleB.setDeadlocked(true);
 

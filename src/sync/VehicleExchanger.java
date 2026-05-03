@@ -78,20 +78,22 @@ public class VehicleExchanger {
     }
 
     /**
-     * Demonstrates the exchange between two vehicle threads.
-     * Creates two threads that swap congestion data.
+     * Creates threads for an exchange demonstration.
+     * Returns the threads so they can be managed/cleaned up by the caller.
      */
-    public void demonstrateExchange(String vehicle1Name, String vehicle1Info,
-                                     String vehicle2Name, String vehicle2Info) {
+    public Thread[] createDemonstrationThreads(String vehicle1Name, String vehicle1Info,
+                                             String vehicle2Name, String vehicle2Info) {
         Thread t1 = new Thread(() -> {
             try {
                 logger.log(vehicle1Name + " offering: " + vehicle1Info);
                 String received = exchanger.exchange(vehicle1Info, 5000, TimeUnit.MILLISECONDS);
                 logger.log(vehicle1Name + " received from partner: " + received);
+            } catch (InterruptedException e) {
+                // Thread interrupted on stop
             } catch (Exception e) {
                 logger.log(vehicle1Name + " exchange failed: " + e.getMessage());
             }
-        }, "Exchanger-" + vehicle1Name);
+        }, "ExchangerDemo-" + vehicle1Name);
 
         Thread t2 = new Thread(() -> {
             try {
@@ -99,12 +101,16 @@ public class VehicleExchanger {
                 logger.log(vehicle2Name + " offering: " + vehicle2Info);
                 String received = exchanger.exchange(vehicle2Info, 5000, TimeUnit.MILLISECONDS);
                 logger.log(vehicle2Name + " received from partner: " + received);
+            } catch (InterruptedException e) {
+                // Thread interrupted on stop
             } catch (Exception e) {
                 logger.log(vehicle2Name + " exchange failed: " + e.getMessage());
             }
-        }, "Exchanger-" + vehicle2Name);
+        }, "ExchangerDemo-" + vehicle2Name);
 
-        t1.start();
-        t2.start();
+        t1.setDaemon(true);
+        t2.setDaemon(true);
+        
+        return new Thread[]{t1, t2};
     }
 }

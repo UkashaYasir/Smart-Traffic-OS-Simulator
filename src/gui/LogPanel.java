@@ -3,6 +3,7 @@ package gui;
 import utils.Logger;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.text.*;
 import java.awt.*;
 
 /**
@@ -12,7 +13,8 @@ import java.awt.*;
  */
 public class LogPanel extends JPanel implements Logger.LogListener {
 
-    private final JTextArea logArea;
+    private final JTextPane logPane;
+    private final StyledDocument doc;
     private final JScrollPane scrollPane;
 
     public LogPanel() {
@@ -33,17 +35,35 @@ public class LogPanel extends JPanel implements Logger.LogListener {
         titleLabel.setPreferredSize(new Dimension(0, 30));
         add(titleLabel, BorderLayout.NORTH);
 
-        // Log text area
-        logArea = new JTextArea();
-        logArea.setEditable(false);
-        logArea.setFont(new Font("Consolas", Font.PLAIN, 11));
-        logArea.setBackground(new Color(18, 18, 28));
-        logArea.setForeground(new Color(200, 200, 220));
-        logArea.setCaretColor(new Color(100, 150, 255));
-        logArea.setLineWrap(true);
-        logArea.setWrapStyleWord(true);
+        // Log text pane (rich text)
+        logPane = new JTextPane();
+        logPane.setEditable(false);
+        logPane.setBackground(new Color(18, 18, 28));
+        logPane.setCaretColor(new Color(100, 150, 255));
+        doc = logPane.getStyledDocument();
 
-        scrollPane = new JScrollPane(logArea);
+        // Setup Styles
+        Style defaultStyle = logPane.addStyle("Default", null);
+        StyleConstants.setForeground(defaultStyle, new Color(200, 200, 220));
+        StyleConstants.setFontFamily(defaultStyle, "Consolas");
+        StyleConstants.setFontSize(defaultStyle, 11);
+
+        Style highlightStyle = logPane.addStyle("Highlight", null);
+        StyleConstants.setForeground(highlightStyle, new Color(120, 255, 180)); // Light Green/Cyan
+        StyleConstants.setFontFamily(highlightStyle, "Consolas");
+        StyleConstants.setFontSize(highlightStyle, 11);
+
+        Style errorStyle = logPane.addStyle("Error", null);
+        StyleConstants.setForeground(errorStyle, new Color(255, 100, 100)); // Red
+        StyleConstants.setFontFamily(errorStyle, "Consolas");
+        StyleConstants.setFontSize(errorStyle, 11);
+
+        Style successStyle = logPane.addStyle("Success", null);
+        StyleConstants.setForeground(successStyle, new Color(241, 196, 15)); // Yellow/Gold
+        StyleConstants.setFontFamily(successStyle, "Consolas");
+        StyleConstants.setFontSize(successStyle, 11);
+
+        scrollPane = new JScrollPane(logPane);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getVerticalScrollBar().setBackground(new Color(30, 30, 45));
         add(scrollPane, BorderLayout.CENTER);
@@ -56,7 +76,7 @@ public class LogPanel extends JPanel implements Logger.LogListener {
         clearBtn.setFocusPainted(false);
         clearBtn.setBorderPainted(false);
         clearBtn.addActionListener(e -> {
-            logArea.setText("");
+            logPane.setText("");
             Logger.getInstance().clear();
         });
         add(clearBtn, BorderLayout.SOUTH);
@@ -72,9 +92,23 @@ public class LogPanel extends JPanel implements Logger.LogListener {
     @Override
     public void onLogMessage(String message) {
         SwingUtilities.invokeLater(() -> {
-            logArea.append(message + "\n");
-            // Auto-scroll to bottom
-            logArea.setCaretPosition(logArea.getDocument().getLength());
+            try {
+                Style style = logPane.getStyle("Default");
+                String lowerMsg = message.toLowerCase();
+                
+                if (lowerMsg.contains("deadlock") || lowerMsg.contains("error") || lowerMsg.contains("blocked")) {
+                    style = logPane.getStyle("Error");
+                } else if (lowerMsg.contains("ai") || lowerMsg.contains("convoy") || lowerMsg.contains("phase")) {
+                    style = logPane.getStyle("Highlight");
+                } else if (lowerMsg.contains("resolved") || lowerMsg.contains("passed") || lowerMsg.contains("exchange")) {
+                    style = logPane.getStyle("Success");
+                }
+                
+                doc.insertString(doc.getLength(), message + "\n", style);
+                logPane.setCaretPosition(doc.getLength());
+            } catch (BadLocationException e) {
+                // Ignore exception on insert
+            }
         });
     }
 }

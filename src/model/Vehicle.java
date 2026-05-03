@@ -21,6 +21,8 @@ public class Vehicle {
     private volatile long waitStartTime;
     private volatile long waitEndTime;
     private volatile boolean deadlocked;
+    private volatile boolean inConvoy;
+    private volatile boolean exchanging;
 
     // Constants for vehicle dimensions
     public static final int WIDTH = 30;
@@ -57,6 +59,8 @@ public class Vehicle {
     public long getWaitStartTime() { return waitStartTime; }
     public long getWaitEndTime() { return waitEndTime; }
     public boolean isDeadlocked() { return deadlocked; }
+    public boolean isInConvoy() { return inConvoy; }
+    public boolean isExchanging() { return exchanging; }
     public boolean isEmergency() { return type.isEmergency(); }
 
     // --- Setters ---
@@ -64,6 +68,8 @@ public class Vehicle {
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
     public void setDeadlocked(boolean deadlocked) { this.deadlocked = deadlocked; }
+    public void setInConvoy(boolean inConvoy) { this.inConvoy = inConvoy; }
+    public void setExchanging(boolean exchanging) { this.exchanging = exchanging; }
 
     public void startWaiting() {
         this.waitStartTime = System.currentTimeMillis();

@@ -6,20 +6,18 @@ import utils.Logger;
 /**
  * OS Concept: COUNTDOWNLATCH
  * 
- * Ensures all vehicle threads start moving at the same time.
+ * Synchronizes the start of multiple threads using a "Starting Gun" pattern.
  * 
- * A CountDownLatch is initialized with a count. Threads call await() to wait,
- * and the latch releases all waiting threads when the count reaches zero
- * through countDown() calls.
+ * A CountDownLatch is a synchronization aid that allows one or more threads
+ * to wait until a set of operations being performed in other threads completes.
+ * 
+ * Key Characteristics:
+ * - One-time Use: The count cannot be reset once it reaches zero (must create new instance).
+ * - Release: Once the latch is fired, it remains open and subsequent threads pass freely.
  * 
  * In this simulation:
- * - When the simulation starts, a latch is created with count = 1
- * - All vehicle threads call await() after being created
- * - When the user clicks "Start", countDown() is called
- * - All vehicles begin moving simultaneously
- * 
- * This demonstrates the "starting gun" synchronization pattern.
- * Unlike a CyclicBarrier, a CountDownLatch can only be used ONCE.
+ * - Ensures that no vehicle thread begins its logic until the engine is fully running.
+ * - Simulates the coordinated release of resources or threads during initialization.
  */
 public class StartLatch {
 

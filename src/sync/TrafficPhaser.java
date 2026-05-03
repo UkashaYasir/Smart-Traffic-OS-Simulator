@@ -10,21 +10,19 @@ import java.util.Map;
 /**
  * OS Concept: PHASER
  * 
- * Controls traffic signal phase transitions.
+ * Controls traffic signal phase transitions using a multi-phase synchronization barrier.
  * 
- * A Phaser is a more flexible synchronization barrier. Unlike CyclicBarrier,
- * the number of parties can change dynamically, and it supports multiple phases.
+ * A Phaser is a more flexible version of CyclicBarrier. It supports multiple 
+ * sequential phases and dynamic party registration. In this project, it manages
+ * the cyclic state machine of the traffic intersection.
  * 
- * In this simulation:
- * - The traffic signal cycles through 4 phases:
- *   Phase 0: North-South GREEN, East-West RED
- *   Phase 1: North-South YELLOW (transition)
- *   Phase 2: East-West GREEN, North-South RED
- *   Phase 3: East-West YELLOW (transition)
- * - The Phaser coordinates these transitions
- * - The phase number determines which lanes get green light
+ * Signal Cycle (Finite State Machine):
+ * - Phase 0: North-South GREEN, East-West RED (Flow starts N-S)
+ * - Phase 1: North-South YELLOW (Graceful transition/flushing)
+ * - Phase 2: East-West GREEN, North-South RED (Flow starts E-W)
+ * - Phase 3: East-West YELLOW (Graceful transition/flushing)
  * 
- * This demonstrates multi-phase synchronization with dynamic party management.
+ * Each transition advances the internal Phaser counter, acting as a global clock.
  */
 public class TrafficPhaser {
 

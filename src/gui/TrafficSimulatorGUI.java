@@ -96,12 +96,23 @@ public class TrafficSimulatorGUI extends JFrame {
         centerWrapper.add(intersectionPanel, BorderLayout.CENTER);
         mainPanel.add(centerWrapper, BorderLayout.CENTER);
 
-        // Right: Stats + Logs stacked vertically
-        JPanel rightPanel = new JPanel(new BorderLayout(0, 5));
-        rightPanel.setBackground(new Color(20, 20, 30));
-        rightPanel.add(statsPanel, BorderLayout.NORTH);
-        rightPanel.add(logPanel, BorderLayout.CENTER);
-        mainPanel.add(rightPanel, BorderLayout.EAST);
+        // Right: Tabs for Dashboard and OS Concepts
+        JTabbedPane rightTabbedPane = new JTabbedPane();
+        rightTabbedPane.setBackground(new Color(30, 30, 45));
+        rightTabbedPane.setForeground(new Color(200, 200, 220));
+        rightTabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        rightTabbedPane.setFocusable(false);
+
+        // Dashboard containing Stats and Logs
+        JPanel dashboardPanel = new JPanel(new BorderLayout(0, 5));
+        dashboardPanel.setBackground(new Color(20, 20, 30));
+        dashboardPanel.add(statsPanel, BorderLayout.NORTH);
+        dashboardPanel.add(logPanel, BorderLayout.CENTER);
+        
+        rightTabbedPane.addTab("📊 Dashboard & Logs", dashboardPanel);
+        rightTabbedPane.addTab("🎓 OS Concepts", new OSConceptsPanel());
+
+        mainPanel.add(rightTabbedPane, BorderLayout.EAST);
 
         setContentPane(mainPanel);
     }

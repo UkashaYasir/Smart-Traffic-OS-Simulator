@@ -8,19 +8,17 @@ import utils.Logger;
 /**
  * OS Concept: SEMAPHORE
  * 
- * Controls access to the intersection (critical section).
- * The intersection can only allow a limited number of vehicles at a time.
+ * Controls access to the intersection (the "Critical Section").
+ * The intersection is a shared resource that can only allow a limited 
+ * number of threads (vehicles) at a time to prevent collisions.
  * 
- * A Semaphore maintains a set of permits. Each acquire() blocks if necessary
- * until a permit is available, and then takes it. Each release() adds a permit.
+ * A Semaphore maintains a set of "permits." 
+ * - acquire(): A thread takes a permit. If no permits are left, it blocks (waits).
+ * - release(): A thread returns the permit, allowing a waiting thread to proceed.
  * 
- * In this simulation:
- * - The intersection is the shared resource (critical section)
- * - The semaphore controls how many vehicles can be inside at once
- * - Vehicles must acquire a permit before entering the intersection
- * - Vehicles release the permit after passing through
- * 
- * This prevents collisions by limiting concurrent access to the intersection.
+ * Implementation Details:
+ * - maxPermits: Limits concurrent access (degree of parallelism).
+ * - fairness: Set to 'true' (FIFO) to prevent vehicle starvation.
  */
 public class IntersectionSemaphore {
 
